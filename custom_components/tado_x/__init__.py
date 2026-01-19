@@ -328,27 +328,33 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         temperature = call.data[ATTR_TEMPERATURE]
         duration_minutes = call.data[ATTR_DURATION]
 
-        # Get the entity state to extract room_id
-        state = hass.states.get(entity_id)
-        if not state:
-            raise HomeAssistantError(f"Entity {entity_id} not found")
-
-        # Entity unique_id format: {home_id}_{room_id}
-        # Get room_id from the entity's unique_id attribute via entity registry
+        # Get the entity from registry
         from homeassistant.helpers import entity_registry as er
         entity_registry = er.async_get(hass)
         entity_entry = entity_registry.async_get(entity_id)
 
-        if not entity_entry or not entity_entry.unique_id:
-            raise HomeAssistantError(f"Could not find entity {entity_id} in registry")
+        if not entity_entry:
+            raise HomeAssistantError(f"Entity {entity_id} not found in registry")
+
+        # Verify this is a Tado X entity
+        if entity_entry.platform != DOMAIN:
+            raise HomeAssistantError(
+                f"Entity {entity_id} is not a Tado X entity (platform: {entity_entry.platform}). "
+                f"The set_climate_timer service only works with native Tado X climate entities."
+            )
+
+        if not entity_entry.unique_id:
+            raise HomeAssistantError(f"Entity {entity_id} has no unique_id")
 
         # Extract room_id from unique_id (format: home_id_room_id)
+        # The unique_id for Tado X climate entities is "{home_id}_{room_id}"
         try:
             parts = entity_entry.unique_id.split("_")
-            if len(parts) >= 2:
-                room_id = int(parts[-1])
+            if len(parts) == 2:
+                # Format: "12345_67" where 12345 is home_id and 67 is room_id
+                room_id = int(parts[1])
             else:
-                raise ValueError("Invalid unique_id format")
+                raise ValueError(f"Unexpected unique_id format: {entity_entry.unique_id}")
         except (ValueError, IndexError) as err:
             raise HomeAssistantError(
                 f"Could not extract room_id from entity {entity_id}: {err}"
