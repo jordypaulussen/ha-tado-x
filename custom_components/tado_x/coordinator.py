@@ -141,6 +141,7 @@ class TadoXDataUpdateCoordinator(DataUpdateCoordinator[TadoXData]):
         enable_mobile_devices: bool = True,
         enable_air_comfort: bool = True,
         enable_running_times: bool = True,
+        enable_flow_temp: bool = True,
     ) -> None:
         """Initialize the coordinator."""
         # Determine scan interval based on subscription tier if not explicitly set
@@ -168,6 +169,7 @@ class TadoXDataUpdateCoordinator(DataUpdateCoordinator[TadoXData]):
         self.enable_mobile_devices = enable_mobile_devices
         self.enable_air_comfort = enable_air_comfort
         self.enable_running_times = enable_running_times
+        self.enable_flow_temp = enable_flow_temp
 
         _LOGGER.info(
             "Tado X coordinator initialized with %d second update interval (%s tier)",
@@ -175,8 +177,8 @@ class TadoXDataUpdateCoordinator(DataUpdateCoordinator[TadoXData]):
             "Auto-Assist" if api.has_auto_assist else "Free"
         )
         _LOGGER.info(
-            "Optional features - Weather: %s, Mobile devices: %s, Air comfort: %s, Running times: %s",
-            enable_weather, enable_mobile_devices, enable_air_comfort, enable_running_times
+            "Optional features - Weather: %s, Mobile devices: %s, Air comfort: %s, Running times: %s, Flow temp: %s",
+            enable_weather, enable_mobile_devices, enable_air_comfort, enable_running_times, enable_flow_temp
         )
 
     def update_scan_interval(self, new_interval: int) -> None:
@@ -460,30 +462,31 @@ class TadoXDataUpdateCoordinator(DataUpdateCoordinator[TadoXData]):
                     # Air comfort endpoint might not be available for all accounts
                     _LOGGER.warning("Failed to fetch air comfort data: %s", err)
 
-            # Fetch flow temperature optimization settings (if available)
-            try:
-                flow_data = await self.api.get_flow_temperature_optimization()
-                if flow_data:
-                    data.has_flow_temp_control = True
-                    data.max_flow_temperature = flow_data.get("maxFlowTemperature")
-                    constraints = flow_data.get("maxFlowTemperatureConstraints", {})
-                    data.flow_temp_min = constraints.get("min")
-                    data.flow_temp_max = constraints.get("max")
-                    auto_adapt = flow_data.get("autoAdaptation", {})
-                    data.flow_temp_auto_adaptation = auto_adapt.get("enabled", False)
-                    data.flow_temp_auto_value = auto_adapt.get("maxFlowTemperature")
-                    _LOGGER.debug(
-                        "Flow temperature: %s°C (range %s-%s), auto=%s",
-                        data.max_flow_temperature,
-                        data.flow_temp_min,
-                        data.flow_temp_max,
-                        data.flow_temp_auto_adaptation,
-                    )
-            except Exception as err:
-                # Flow temperature endpoint might not be available for all setups
-                # (requires OpenTherm-compatible boiler control device)
-                _LOGGER.debug("Flow temperature optimization not available: %s", err)
-                data.has_flow_temp_control = False
+            # Fetch flow temperature optimization settings (if available and enabled)
+            if self.enable_flow_temp:
+                try:
+                    flow_data = await self.api.get_flow_temperature_optimization()
+                    if flow_data:
+                        data.has_flow_temp_control = True
+                        data.max_flow_temperature = flow_data.get("maxFlowTemperature")
+                        constraints = flow_data.get("maxFlowTemperatureConstraints", {})
+                        data.flow_temp_min = constraints.get("min")
+                        data.flow_temp_max = constraints.get("max")
+                        auto_adapt = flow_data.get("autoAdaptation", {})
+                        data.flow_temp_auto_adaptation = auto_adapt.get("enabled", False)
+                        data.flow_temp_auto_value = auto_adapt.get("maxFlowTemperature")
+                        _LOGGER.debug(
+                            "Flow temperature: %s°C (range %s-%s), auto=%s",
+                            data.max_flow_temperature,
+                            data.flow_temp_min,
+                            data.flow_temp_max,
+                            data.flow_temp_auto_adaptation,
+                        )
+                except Exception as err:
+                    # Flow temperature endpoint might not be available for all setups
+                    # (requires OpenTherm-compatible boiler control device)
+                    _LOGGER.debug("Flow temperature optimization not available: %s", err)
+                    data.has_flow_temp_control = False
 
             # Populate API stats (prefer real values from headers when available)
             data.api_calls_today = self.api.api_calls_today

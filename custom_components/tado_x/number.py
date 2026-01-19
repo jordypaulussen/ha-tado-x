@@ -61,9 +61,10 @@ class TadoXMaxFlowTemperature(CoordinatorEntity[TadoXDataUpdateCoordinator], Num
     @property
     def device_info(self) -> DeviceInfo:
         """Return device info for the home."""
+        home_name = self.coordinator.home_name or f"Tado Home {self.coordinator.home_id}"
         return DeviceInfo(
             identifiers={(DOMAIN, str(self.coordinator.home_id))},
-            name=self.coordinator.home_name,
+            name=home_name,
             manufacturer="Tado",
             model="Tado X Home",
         )
