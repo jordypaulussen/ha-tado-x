@@ -2,6 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 [![GitHub Release](https://img.shields.io/github/v/release/exabird/ha-tado-x)](https://github.com/exabird/ha-tado-x/releases)
+[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Support-yellow?style=flat&logo=buy-me-a-coffee)](https://buymeacoffee.com/exabird)
 
 A Home Assistant custom integration for **Tado X** devices (the new generation of Tado smart thermostats and radiator valves).
 
@@ -205,14 +206,19 @@ We hope Tado considers this for future firmware updates. The smart home communit
 
 ## Support the Project
 
-[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-pink?logo=github)](https://github.com/sponsors/exabird)
+If you find this integration useful and it saved you time or solved your Tado X / Home Assistant integration challenges, consider supporting its continued development!
 
-If you find this integration useful, consider supporting its development! Your sponsorship helps fund:
-- New features and improvements
-- Bug fixes and compatibility updates
-- Documentation and community support
+<a href="https://buymeacoffee.com/exabird" target="_blank">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="50">
+</a>
 
-**[Become a Sponsor](https://github.com/sponsors/exabird)**
+Your support helps me:
+- Dedicate time to maintaining and improving this integration
+- Respond quickly to bug reports and feature requests
+- Keep the project compatible with Home Assistant updates
+- Add new features from the roadmap
+
+Every coffee fuels another contribution to the community!
 
 ## Support
 
