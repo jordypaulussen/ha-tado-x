@@ -6,11 +6,21 @@ This document tracks planned features and enhancements for the Tado X Home Assis
 
 ### P1 - Critical Priority
 
-- **🔥 Local API Mode** - Control Tado devices locally via HomeKit protocol
-  - Zero cloud dependency for core operations
-  - No API rate limits
-  - Instant response times
-  - *Note: Requires HomeKit bridge re-pairing, same network*
+- **🔥 Local Control Mode** - Control Tado devices locally via HomeKit protocol
+  - Zero cloud dependency for core operations (temperature control, on/off)
+  - No API rate limits - unlimited updates
+  - Instant response times (~50ms vs ~500ms cloud)
+  - Works even when Tado cloud is down
+
+  **How it works:** Tado bridges expose a HomeKit interface on your local network. By pairing with this interface, we can send commands directly to devices without going through Tado's servers.
+
+  **Limitations:**
+  - Requires one-time HomeKit bridge re-pairing (resets existing HomeKit setup)
+  - Bridge and Home Assistant must be on the same network
+  - Zone names and metadata still sync from cloud initially
+  - Some advanced features (schedules, Energy IQ) remain cloud-only
+
+  **Status:** Research phase - evaluating [TadoLocal](https://github.com/AmpScm/TadoLocal) implementation
 
 ### P2 - High Priority
 
