@@ -235,11 +235,11 @@
         }
       },
       "air_freshness": {
-        "name": "Air Freshness",
+        "name": "Humidity Level",
         "state": {
-          "fresh": "Fresh",
-          "fair": "Fair",
-          "stale": "Stale"
+          "humid": "Humid",
+          "comfy": "Comfortable",
+          "dry": "Dry"
         }
       },
       "comfort_level": {
@@ -247,7 +247,7 @@
         "state": {
           "cold": "Cold",
           "comfy": "Comfortable",
-          "hot": "Hot"
+          "warm": "Warm"
         }
       }
     },

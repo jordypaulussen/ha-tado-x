@@ -442,13 +442,13 @@ class TadoXDataUpdateCoordinator(DataUpdateCoordinator[TadoXData]):
                     for comfort_entry in comfort_list:
                         room_id = comfort_entry.get("roomId")
                         if room_id:
-                            # Get humidity freshness (FRESH, FAIR, STALE)
-                            humidity_data = comfort_entry.get("humidity") or {}
-                            freshness = humidity_data.get("humidityLevel")
+                            # Get humidity level (HUMID, COMFY, DRY)
+                            # The API returns humidityLevel directly in comfort_entry
+                            freshness = comfort_entry.get("humidityLevel")
 
-                            # Get temperature comfort level
-                            temperature_data = comfort_entry.get("temperature") or {}
-                            comfort_level = temperature_data.get("temperatureLevel")
+                            # Get temperature comfort level (COLD, COMFY, WARM)
+                            # The API returns temperatureLevel directly in comfort_entry
+                            comfort_level = comfort_entry.get("temperatureLevel")
 
                             room_air_comfort = TadoXRoomAirComfort(
                                 room_id=room_id,
