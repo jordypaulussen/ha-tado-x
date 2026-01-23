@@ -7,6 +7,7 @@ from datetime import date, datetime, timedelta
 from typing import TYPE_CHECKING, Any, Callable
 
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import TadoXApi, TadoXApiError, TadoXAuthError, TadoXRateLimitError
@@ -520,7 +521,11 @@ class TadoXDataUpdateCoordinator(DataUpdateCoordinator[TadoXData]):
                 rate_limit_reset=err.reset_time,
             )
         except TadoXAuthError as err:
-            raise UpdateFailed(f"Authentication error: {err}") from err
+            # Trigger reauthentication flow instead of just failing
+            # This will prompt the user to re-authenticate via the UI
+            raise ConfigEntryAuthFailed(
+                f"Authentication failed: {err}. Please re-authenticate."
+            ) from err
         except TadoXApiError as err:
             raise UpdateFailed(f"API error: {err}") from err
         except Exception as err:
