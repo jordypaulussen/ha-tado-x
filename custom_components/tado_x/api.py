@@ -63,17 +63,16 @@ class TadoXApi:
         self._on_token_refresh = on_token_refresh
 
         # Initialize API call tracking with persistence support
+        # Tado resets quotas at 12:00 UTC (noon), not midnight
         now = datetime.now(timezone.utc)
-        default_reset_time = now.replace(
-            hour=0, minute=0, second=0, microsecond=0
-        ) + timedelta(days=1)
+        default_reset_time = self._calculate_next_reset_time(now)
 
         if api_reset_time and api_reset_time > now:
             # Restore persisted values if reset time hasn't passed
             self._api_calls_today = api_calls_today
             self._api_call_reset_time = api_reset_time
         else:
-            # Reset counter if new day or no persisted data
+            # Reset counter if new period or no persisted data
             self._api_calls_today = 0
             self._api_call_reset_time = default_reset_time
 
@@ -135,6 +134,30 @@ class TadoXApi:
     def api_quota_remaining(self) -> int | None:
         """Return the API quota remaining from headers (if available)."""
         return self._api_quota_remaining
+
+    @staticmethod
+    def _calculate_next_reset_time(now: datetime) -> datetime:
+        """Calculate the next API quota reset time.
+
+        Tado resets quotas at 12:00 UTC (noon). This method calculates
+        the next reset time based on the current time.
+
+        Args:
+            now: Current datetime in UTC
+
+        Returns:
+            Next reset time as datetime in UTC
+        """
+        # Reset time is 12:00 UTC
+        reset_hour = 12
+        today_reset = now.replace(hour=reset_hour, minute=0, second=0, microsecond=0)
+
+        if now >= today_reset:
+            # Already past today's reset, next reset is tomorrow at noon
+            return today_reset + timedelta(days=1)
+        else:
+            # Today's reset hasn't happened yet
+            return today_reset
 
     def _parse_rate_limit_headers(self, headers: dict) -> None:
         """Parse rate limit information from Tado API response headers.
@@ -312,13 +335,11 @@ class TadoXApi:
         # Track API call
         self._api_calls_today += 1
 
-        # Reset counter if new day
+        # Reset counter if past reset time (noon UTC)
         now = datetime.now(timezone.utc)
         if now >= self._api_call_reset_time:
             self._api_calls_today = 1
-            self._api_call_reset_time = now.replace(
-                hour=0, minute=0, second=0, microsecond=0
-            ) + timedelta(days=1)
+            self._api_call_reset_time = self._calculate_next_reset_time(now)
 
         headers = {
             "Authorization": f"Bearer {self._access_token}",
