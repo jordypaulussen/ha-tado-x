@@ -83,14 +83,16 @@ class TadoXChildLockSwitch(CoordinatorEntity[TadoXDataUpdateCoordinator], Switch
         device_type_names_fr = {
             "VA04": "Vanne",
             "SU04": "Capteur Temp",
-            "TR04": "Thermostat",
+            "TR04": "Récepteur",  # Wireless Receiver X
+            "RU04": "Thermostat",  # Wired Smart Thermostat X
             "IB02": "Bridge X",
         }
 
         device_type_models = {
             "VA04": "Radiator Valve X",
             "SU04": "Temperature Sensor X",
-            "TR04": "Thermostat X",
+            "TR04": "Wireless Receiver X",
+            "RU04": "Wired Smart Thermostat X",
             "IB02": "Bridge X",
         }
 

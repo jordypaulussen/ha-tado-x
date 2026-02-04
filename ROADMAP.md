@@ -53,6 +53,12 @@ This document tracks planned features and enhancements for the Tado X Home Assis
 
 ### P3 - Medium Priority
 
+- **⏸️ Disable Polling Option** - Allow users to completely disable API polling
+  - Add checkbox or "0" option in scan interval to disable polling
+  - Use case: Users who only need the integration for services (temperature offset) and use Matter for state
+  - Saves API quota for custom automations
+  - Requested by: @LeroyK (#41), supported by @rofra
+
 - **🔥 Zone Controller Toggle (Passive Heating Mode)** - Per-room control of boiler "call for heat"
   - Toggle Zone Controller association per room to enable "passive heating"
   - When disabled: room valves open based on setpoints but don't trigger the boiler relay

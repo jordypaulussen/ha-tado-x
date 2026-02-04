@@ -50,7 +50,8 @@ API_CALLS_BASE: Final = 3
 
 # Device types
 DEVICE_TYPE_VALVE: Final = "VA04"  # Tado X Radiator Valve
-DEVICE_TYPE_THERMOSTAT: Final = "TR04"  # Tado X Thermostat
+DEVICE_TYPE_WIRELESS_RECEIVER: Final = "TR04"  # Tado X Wireless Receiver
+DEVICE_TYPE_THERMOSTAT: Final = "RU04"  # Tado X Wired Smart Thermostat
 DEVICE_TYPE_BRIDGE: Final = "IB02"  # Tado X Bridge
 DEVICE_TYPE_SENSOR: Final = "SU04"  # Tado X Temperature Sensor
 

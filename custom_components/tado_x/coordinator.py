@@ -356,13 +356,13 @@ class TadoXDataUpdateCoordinator(DataUpdateCoordinator[TadoXData]):
                 # If device has a room association from API, use it
                 if other_room_id and other_room_id in data.rooms:
                     other_room_name = data.rooms[other_room_id].name
-                # For Thermostat X (TR04) without room, associate with the room
+                # For Wireless Receiver X (TR04) without room, associate with the room
                 # that has the most devices (typically the main room it controls)
                 elif device_type == "TR04" and room_with_most_devices:
                     other_room_id = room_with_most_devices
                     other_room_name = data.rooms[room_with_most_devices].name
                     _LOGGER.debug(
-                        "Associating Thermostat X %s with room %s (%s) - room has %d devices",
+                        "Associating Wireless Receiver X %s with room %s (%s) - room has %d devices",
                         device_data.get("serialNumber"),
                         other_room_id,
                         other_room_name,
