@@ -1,79 +1,64 @@
+"""Support for Tado X water heater (boiler)."""
+
+from __future__ import annotations
 import logging
+
 from homeassistant.components.water_heater import (
     WaterHeaterEntity,
     SUPPORT_TARGET_TEMPERATURE,
-    SUPPORT_OPERATION_MODE,
 )
 from homeassistant.const import TEMP_CELSIUS
 
+from .coordinator import TadoXDataUpdateCoordinator
+from .const import DOMAIN
+
 _LOGGER = logging.getLogger(__name__)
-SUPPORT_FLAGS = SUPPORT_TARGET_TEMPERATURE | SUPPORT_OPERATION_MODE
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    coordinator = hass.data["tado_x_coordinator"]
-    async_add_entities([TadoXDomesticHotWater(coordinator)])
+    """Set up Tado X water heater platform."""
+    coordinator: TadoXDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
-class TadoXDomesticHotWater(WaterHeaterEntity):
-    """Tado Domestic Hot Water entity"""
+    # Zoek boiler/water_heater devices
+    water_heaters = []
+    for device in coordinator.data.other_devices:
+        if device.device_type.lower() in ["water_heater", "boiler"]:
+            water_heaters.append(TadoXWaterHeater(coordinator, device))
 
-    def __init__(self, coordinator):
+    if not water_heaters:
+        _LOGGER.info("Geen water_heater devices gevonden voor Tado X")
+        return
+
+    async_add_entities(water_heaters)
+
+
+class TadoXWaterHeater(WaterHeaterEntity):
+    """Representation of a Tado X water heater."""
+
+    def __init__(self, coordinator: TadoXDataUpdateCoordinator, device):
         self.coordinator = coordinator
-        self._name = "Tado Domestic Hot Water"
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def temperature_unit(self):
-        return TEMP_CELSIUS
+        self.device = device
+        self._attr_name = f"Tado Boiler {device.serial_number}"
+        self._attr_supported_features = SUPPORT_TARGET_TEMPERATURE
+        self._attr_temperature_unit = TEMP_CELSIUS
 
     @property
     def current_temperature(self):
-        return self.coordinator.data["heat_pump"]["domesticHotWater"]["currentTemperatureInCelsius"]
+        return self.device.temperature_measured
 
     @property
     def target_temperature(self):
-        return self.coordinator.data["heat_pump"]["domesticHotWater"]["currentBlockSetpoint"]["setpointValue"]["value"]
+        return getattr(self.device, "target_temperature", None)
 
     @property
-    def min_temp(self):
-        return 40.0
-
-    @property
-    def max_temp(self):
-        return 60.0
-
-    @property
-    def supported_features(self):
-        return SUPPORT_FLAGS
-
-    @property
-    def operation_list(self):
-        return ["off", "on", "boost"]
-
-    @property
-    def current_operation(self):
-        dhw = self.coordinator.data["heat_pump"]["domesticHotWater"]
-        if dhw["boostActive"]:
-            return "boost"
-        if dhw["manualOffActive"]:
-            return "off"
-        return "on"
+    def is_on(self):
+        return self.device.connection_state == "CONNECTED"
 
     async def async_set_temperature(self, **kwargs):
-        temperature = kwargs.get("temperature")
-        if temperature is not None:
-            await self.coordinator.tado_x.set_dhw_temperature(temperature)
+        temp = kwargs.get("temperature")
+        if temp is not None:
+            # Zet de boiler temperatuur via de coordinator API
+            await self.coordinator.api.set_boiler_temperature(
+                self.device.serial_number, temp
+            )
             await self.coordinator.async_request_refresh()
-
-    async def async_set_operation_mode(self, operation_mode):
-        dhw = self.coordinator.data["heat_pump"]["domesticHotWater"]
-        if operation_mode == "boost":
-            await self.coordinator.tado_x.set_dhw_boost(True)
-        elif operation_mode == "off":
-            await self.coordinator.tado_x.set_dhw_manual_off(True)
-        else:
-            await self.coordinator.tado_x.set_dhw_boost(False)
-            await self.coordinator.tado_x.set_dhw_manual_off(False)
-        await self.coordinator.async_request_refresh()
