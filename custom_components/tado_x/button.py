@@ -44,6 +44,13 @@ BUTTON_DESCRIPTIONS: tuple[TadoXButtonEntityDescription, ...] = (
         icon="mdi:calendar-clock",
         press_fn=lambda coordinator: coordinator.api.resume_all_schedules(),
     ),
+        TadoXButtonEntityDescription(
+        key="dhw_boost",
+        translation_key="dhw_boost",
+        icon="mdi:water-boiler-alert",
+        press_fn=lambda coordinator: coordinator.api.dhw_boost(),
+    ),
+
 )
 
 
