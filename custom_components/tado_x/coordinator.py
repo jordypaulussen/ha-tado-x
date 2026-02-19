@@ -125,6 +125,10 @@ class TadoXData:
     flow_temp_auto_adaptation: bool = False
     flow_temp_auto_value: int | None = None
     has_flow_temp_control: bool = False
+    # Domestic Hot Water (Heat Pump Optimizer / CK04)
+    dhw_active: bool | None = None
+    dhw_boost_active: bool = False
+    has_dhw_control: bool = False
 
 
 class TadoXDataUpdateCoordinator(DataUpdateCoordinator[TadoXData]):
@@ -488,6 +492,22 @@ class TadoXDataUpdateCoordinator(DataUpdateCoordinator[TadoXData]):
                     # (requires OpenTherm-compatible boiler control device)
                     _LOGGER.debug("Flow temperature optimization not available: %s", err)
                     data.has_flow_temp_control = False
+                        # Fetch Domestic Hot Water state (CK04)
+            try:
+                dhw_state = await self.api.get_dhw_state()
+                if dhw_state:
+                    data.has_dhw_control = True
+                    data.dhw_active = dhw_state.get("active")
+                    data.dhw_boost_active = dhw_state.get("boostActive", False)
+
+                    _LOGGER.debug(
+                        "DHW state - active: %s, boost: %s",
+                        data.dhw_active,
+                        data.dhw_boost_active,
+                    )
+            except Exception as err:
+                _LOGGER.debug("DHW control not available: %s", err)
+                data.has_dhw_control = False
 
             # Populate API stats (prefer real values from headers when available)
             data.api_calls_today = self.api.api_calls_today
@@ -531,3 +551,4 @@ class TadoXDataUpdateCoordinator(DataUpdateCoordinator[TadoXData]):
         except Exception as err:
             _LOGGER.exception("Unexpected error fetching Tado X data")
             raise UpdateFailed(f"Unexpected error: {err}") from err
+
